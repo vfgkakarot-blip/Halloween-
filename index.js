@@ -201,7 +201,7 @@ function createNowPlayingContainer(player, track, disabled = false) {
       new SectionBuilder()
         .addTextDisplayComponents(
           new TextDisplayBuilder()
-            .setContent(`## ${config.emojis.music} Now Playing\n**[${info.title || 'Unknown Title'}](${info.uri || 'https://youtube.com'})**`)
+            .setContent(`## ${config.emojis.music} Now Playing\n**[${info.title || 'GblVijju Title'}](${info.uri || 'https://youtube.com'})**`)
         )
         .setThumbnailAccessory(
           new ThumbnailBuilder()
@@ -304,7 +304,7 @@ function createQueueContainer(player, guild, user) {
   let description = '';
 
   if (current?.info) {
-    description += `**Now Playing:**\n**[${current.info.title}](${current.info.uri})**\n${current.info.author || 'Unknown'} • ${formatTime(current.info.length)} • <@${current.info.requester}>\n\n`;
+    description += `**Now Playing:**\n**[${current.info.title}](${current.info.uri})**\n${current.info.author || 'GblVijju'} • ${formatTime(current.info.length)} • <@${current.info.requester}>\n\n`;
   }
 
   if (queue.length > 0) {
@@ -312,7 +312,7 @@ function createQueueContainer(player, guild, user) {
     const upcoming = queue.slice(0, 10);
     upcoming.forEach((t, i) => {
       const inf = t.info || {};
-      description += `\`${i + 1}.\` **[${inf.title}](${inf.uri})**\n${inf.author || 'Unknown'} • ${formatTime(inf.length || 0)} • <@${t.info.requester}>\n`;
+      description += `\`${i + 1}.\` **[${inf.title}](${inf.uri})**\n${inf.author || 'GblVijju'} • ${formatTime(inf.length || 0)} • <@${t.info.requester}>\n`;
     });
     if (queue.length > 10) {
       description += `\n*...and ${queue.length - 10} more track(s)*`;
@@ -396,7 +396,7 @@ function createHelpContainer() {
           new ButtonBuilder()
             .setLabel('Invite Me')
             .setStyle(ButtonStyle.Link)
-            .setURL(`https://discord.com/oauth2/authorize?client_id=1502351042447151264&permissions=8&integration_type=0&scope=bot+applications.commands`),
+            .setURL(`https://discord.com/oauth2/authorize?client_id=1467199219654856836&permissions=8&integration_type=0&scope=bot+applications.commands`),
           new ButtonBuilder()
             .setLabel('Support')
             .setStyle(ButtonStyle.Link)
