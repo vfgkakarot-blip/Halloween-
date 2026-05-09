@@ -176,21 +176,24 @@ function createNowPlayingContainer(player, track, disabled = false) {
   const info = track.info ?? {};
   let thumbnail = info.artworkUrl || info.thumbnail || null;
 
-  if (.thumbnail && info.uri && info.uri.includes('youtube.com')) {
+  // Fix YouTube thumbnail
+  if (!thumbnail && info.uri && info.uri.includes('youtube.com')) {
     const videoId = info.uri.split('v=')[1]?.split('&')[0];
     if (videoId) {
       thumbnail = `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
     }
   }
 
-  if (.thumbnail && info.uri && info.uri.includes('youtu.be')) {
+  // Fix youtu.be thumbnail
+  if (!thumbnail && info.uri && info.uri.includes('youtu.be')) {
     const videoId = info.uri.split('youtu.be/')[1]?.split('?')[0];
     if (videoId) {
       thumbnail = `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
     }
   }
 
-  if (.thumbnail) {
+  // Default thumbnail
+  if (!thumbnail) {
     thumbnail = 'https://i.imgur.com/QYJfXQv.png';
   }
 
@@ -201,7 +204,7 @@ function createNowPlayingContainer(player, track, disabled = false) {
       new SectionBuilder()
         .addTextDisplayComponents(
           new TextDisplayBuilder()
-            .setContent(`## ${config.emojis.music} Now Playing\n**[${info.title || 'GblVijju Title'}](${info.uri || 'https://youtube.com'})**`)
+            .setContent(`## ${config.emojis.music} Now Playing\n**[${info.title || 'Unknown Title'}](${info.uri || 'https://youtube.com'})**`)
         )
         .setThumbnailAccessory(
           new ThumbnailBuilder()
@@ -214,50 +217,59 @@ function createNowPlayingContainer(player, track, disabled = false) {
         .setContent(`**Duration:** ${formatTime(info.length || 0)} • **Requested By:** <@${track.info.requester}>`)
     )
     .addSeparatorComponents(
-      new SeparatorBuilder().setSpacing(SeparatorSpacingSize.Small).setDivider(true)
+      new SeparatorBuilder()
+        .setSpacing(SeparatorSpacingSize.Small)
+        .setDivider(true)
     )
     .addActionRowComponents(
-      new ActionRowBuilder()
-        .addComponents(
-          new ButtonBuilder()
-            .setCustomId(isPaused ? 'resume' : 'pause')
-            .setEmoji(isPaused ? config.emojis.play : config.emojis.pause)
-            .setStyle(isPaused ? ButtonStyle.Success : ButtonStyle.Primary)
-            .setDisabled(disabled),
-          new ButtonBuilder()
-            .setCustomId('skip')
-            .setEmoji(config.emojis.skip)
-            .setStyle(ButtonStyle.Primary)
-            .setDisabled(disabled),
-          new ButtonBuilder()
-            .setCustomId('stop')
-            .setEmoji(config.emojis.stop)
-            .setStyle(ButtonStyle.Danger)
-            .setDisabled(disabled),
-          new ButtonBuilder()
-            .setCustomId('shuffle')
-            .setEmoji(config.emojis.shuffle)
-            .setStyle(ButtonStyle.Secondary)
-            .setDisabled(disabled),
-          new ButtonBuilder()
-            .setCustomId('queue')
-            .setEmoji(config.emojis.queue)
-            .setStyle(ButtonStyle.Secondary)
-            .setDisabled(disabled)
-        )
+      new ActionRowBuilder().addComponents(
+        new ButtonBuilder()
+          .setCustomId(isPaused ? 'resume' : 'pause')
+          .setEmoji(isPaused ? config.emojis.play : config.emojis.pause)
+          .setStyle(isPaused ? ButtonStyle.Success : ButtonStyle.Primary)
+          .setDisabled(disabled),
+
+        new ButtonBuilder()
+          .setCustomId('skip')
+          .setEmoji(config.emojis.skip)
+          .setStyle(ButtonStyle.Primary)
+          .setDisabled(disabled),
+
+        new ButtonBuilder()
+          .setCustomId('stop')
+          .setEmoji(config.emojis.stop)
+          .setStyle(ButtonStyle.Danger)
+          .setDisabled(disabled),
+
+        new ButtonBuilder()
+          .setCustomId('shuffle')
+          .setEmoji(config.emojis.shuffle)
+          .setStyle(ButtonStyle.Secondary)
+          .setDisabled(disabled),
+
+        new ButtonBuilder()
+          .setCustomId('queue')
+          .setEmoji(config.emojis.queue)
+          .setStyle(ButtonStyle.Secondary)
+          .setDisabled(disabled)
+      )
     )
     .addActionRowComponents(
-      new ActionRowBuilder()
-        .addComponents(
-          new ButtonBuilder()
-            .setCustomId('loop')
-            .setEmoji(config.emojis.loop)
-            .setStyle(player.loop && player.loop !== 'none' ? ButtonStyle.Success : ButtonStyle.Secondary)
-            .setDisabled(disabled)
-        )
+      new ActionRowBuilder().addComponents(
+        new ButtonBuilder()
+          .setCustomId('loop')
+          .setEmoji(config.emojis.loop)
+          .setStyle(
+            player.loop && player.loop !== 'none'
+              ? ButtonStyle.Success
+              : ButtonStyle.Secondary
+          )
+          .setDisabled(disabled)
+      )
     );
 
   return container;
+}
 }
 
 function createSimpleContainer(title, description, emoji = config.emojis.info) {
@@ -317,11 +329,11 @@ function createQueueContainer(player, guild, user) {
     if (queue.length > 10) {
       description += `\n*...and ${queue.length - 10} more track(s)*`;
     }
-  } else if (.current) {
+  } else if (!current) {
     description = 'The queue is currently empty.';
   }
 
-  description += `\n\n**Loop:** ${(.player.loop || player.loop === 'none') ? 'off' : player.loop} | **Total:** ${player.queue.length + 1} tracks`;
+  description += `\n\n**Loop:** ${(player.loop === 'none' || !player.loop) ? 'off' : player.loop} | **Total:** ${player.queue.length + 1} tracks`;
 
   let thumbnail = client.user.displayAvatarURL({ size: 1024 });
 
@@ -407,7 +419,7 @@ function createHelpContainer() {
 
 riffy.on('trackStart', async (player, track) => {
   const channel = client.channels.cache.get(player.textChannel);
-  if (.channel) return;
+  if (!channel) return;
 
   const container = createNowPlayingContainer(player, track);
 
@@ -453,12 +465,12 @@ client.on('interactionCreate', async (interaction) => {
   if (interaction.isButton()) {
     const player = riffy.players.get(interaction.guildId);
 
-    if (.player) {
+    if (!player) {
       return interaction.reply({ content: `${config.emojis.error} No player found`, ephemeral: true });
     }
 
     const member = interaction.member;
-    if (.member.voice.channel) {
+    if (!member.voice.channel) {
       return interaction.reply({ content: `${config.emojis.error} You need to be in a voice channel`, ephemeral: true });
     }
 
