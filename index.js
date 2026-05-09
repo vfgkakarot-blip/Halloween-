@@ -270,7 +270,6 @@ function createNowPlayingContainer(player, track, disabled = false) {
 
   return container;
 }
-}
 
 function createSimpleContainer(title, description, emoji = config.emojis.info) {
   return new ContainerBuilder()
